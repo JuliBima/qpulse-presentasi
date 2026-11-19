@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Q-PULSE: dari test case sampai WhatsApp, dan Compare Defect</title>
+<style>
+:root {
+  --ink: #080b16;
+  --panel: #31205c;
+  --surface: #11112b;
+  --line: #2d2760;
+  --text: #f1eeff;
+  --text-2: #c9c3e8;
+  --muted: #b3abdc;
+  --violet: #8b5cf6;
+  --violet-t: #a78bfa;
+  --blue: #2563eb;
+  --blue-t: #93c5fd;
+  --bar: 56px;
+  /* Font sistem: tidak butuh jaringan dan tampil native di macOS maupun Windows. */
+  --sans: "Avenir Next", "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+  /* Monospace hanya untuk nilai literal: key tiket, nama field, nama file. */
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--ink); color: var(--text); font-family: var(--sans); }
+body { overflow: hidden; }
+button, [role="button"], summary, select, label[for] { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .45; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.viewport { position: fixed; inset: 0 0 var(--bar) 0; overflow: hidden; }
+body.fs .viewport { bottom: 0; }
+.stage {
+  position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px;
+  transform: translate(-50%, -50%) scale(var(--scale, 1));
+  background: var(--ink); overflow: hidden;
+}
+
+.slide {
+  position: absolute; inset: 0; padding: 76px 96px 64px;
+  display: flex; flex-direction: column;
+  opacity: 0; visibility: hidden; transform: translateX(28px);
+  transition: opacity .28s ease, transform .28s ease, visibility 0s linear .28s;
+}
+.slide.active { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.slide.past { transform: translateX(-28px); }
+
+.kicker { margin: 0 0 12px; font-size: 28px; line-height: 1.2; font-weight: 600; color: var(--violet-t); }
+.lane-b .kicker, .kicker.b { color: var(--blue-t); }
+h2 { text-wrap: balance; margin: 0; font-size: 60px; line-height: 1.12; font-weight: 750; letter-spacing: -.01em; max-width: 1728px; }
+.head { margin-bottom: 30px; flex: none; }
+.body { flex: 1; min-height: 0; display: flex; align-items: center; gap: 56px; }
+
+.facts { list-style: none; margin: 0; padding: 0; }
+.facts li { padding: 20px 0; border-top: 1px solid rgba(201, 195, 232, .22); }
+.facts li:last-child { border-bottom: 1px solid rgba(201, 195, 232, .22); }
+.facts b { display: block; margin-bottom: 6px; font-size: 32px; line-height: 1.2; font-weight: 700; }
+.facts span, .facts p { margin: 0; font-size: 26px; line-height: 1.4; color: var(--text-2); }
+code, .mono { font-family: var(--mono); font-size: .9em; color: var(--text); }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.chips i { font-style: normal; font-family: var(--mono); font-size: 22px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--text-2); }
+
+/* Satu bayangan untuk semua screenshot: mengangkatnya dari latar sebagai bukti tampilan nyata. */
+.shot { position: relative; margin: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 28px 70px rgba(0, 0, 0, .5); flex: none; }
+.shot img { display: block; width: 100%; height: auto; border-radius: 13px; }
+.sample { position: absolute; left: 16px; top: -32px; z-index: 2; padding: 4px 11px; border-radius: 8px; background: var(--panel); color: #e9e3ff; font-size: 20px; line-height: 1.3; font-weight: 600; white-space: nowrap; }
+
+[data-step] { opacity: 0; transform: translateY(14px); transition: opacity .26s ease, transform .26s ease; }
+[data-step].on { opacity: 1; transform: none; }
+
+.notes { display: none; }
+
+.s1 { justify-content: center; }
+.s1::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 900px; background: var(--panel); z-index: 0; }
+.s1 > * { position: relative; z-index: 1; }
+.s1 .meta { margin: 0 0 24px; font-size: 30px; color: var(--muted); }
+.s1 h1 {
+  margin: 0; font-size: 210px; line-height: .95; font-weight: 800; letter-spacing: -.03em; width: fit-content;
+  background: linear-gradient(90deg, var(--violet-t), var(--blue-t)); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.s1 .lead { margin: 36px 0 0; max-width: 760px; font-size: 44px; line-height: 1.3; color: var(--text); }
+.s1 .shot { position: absolute; z-index: 2; }
+.s1 .shot.one { right: -70px; top: 110px; width: 860px; }
+.s1 .shot.two { right: 190px; top: 530px; width: 760px; }
+
+.s2 { padding: 0; flex-direction: row; }
+.s2 .side { width: 720px; flex: none; background: var(--panel); padding: 76px 72px 64px 96px; display: flex; flex-direction: column; justify-content: center; }
+.s2 .side h2 { font-size: 68px; }
+.s2 .main { flex: 1; padding: 76px 96px 64px 88px; display: flex; align-items: center; }
+.rows { list-style: none; margin: 0; padding: 0; width: 100%; }
+.rows li { display: grid; grid-template-columns: 130px 1fr; padding: 26px 0; border-top: 1px solid rgba(201, 195, 232, .22); align-items: baseline; }
+.rows li:last-child { border-bottom: 1px solid rgba(201, 195, 232, .22); }
+.rows .n { font-size: 64px; font-weight: 800; color: var(--violet-t); line-height: 1; }
+.rows b { display: block; font-size: 38px; margin-bottom: 8px; }
+.rows span { font-size: 28px; line-height: 1.4; color: var(--text-2); }
+
+.s3 .lanes { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 84px; }
+.lane { display: flex; align-items: stretch; gap: 48px; }
+.lane-a { --lane: var(--violet); --lane-t: var(--violet-t); }
+.lane-b { --lane: var(--blue); --lane-t: var(--blue-t); }
+.lane-name { width: 300px; flex: none; display: flex; flex-direction: column; justify-content: center; }
+.lane-name b { font-size: 44px; color: var(--lane-t); line-height: 1.1; }
+.lane-name span { margin-top: 8px; font-size: 26px; color: var(--text-2); line-height: 1.3; }
+.nodes { list-style: none; margin: 0; padding: 0; flex: 1; display: flex; gap: 48px; }
+.nodes li { position: relative; flex: 1; padding: 34px 32px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.nodes li + li::before { content: ""; position: absolute; left: -49px; top: 50%; width: 48px; height: 3px; background: var(--lane); }
+.nodes b { display: block; font-size: 36px; line-height: 1.2; margin-bottom: 10px; }
+.nodes span { font-size: 27px; line-height: 1.35; color: var(--text-2); }
+
+.s4 .text { width: 640px; flex: none; }
+.s4 .shot { width: 1032px; }
+.s5 .shot { width: 963px; }
+.s5 .text { flex: 1; }
+.s6 .text { width: 560px; flex: none; }
+.s6 .shots { display: flex; gap: 24px; align-items: flex-start; margin-left: auto; }
+.s6 .shot { width: 536px; }
+.s7 .shot { width: 520px; border-radius: 26px; }
+.s7 .shot img { border-radius: 25px; }
+.s7 .text { flex: 1; }
+.s8 .pair { display: flex; gap: 48px; align-items: flex-start; margin-top: 8px; }
+.s8 .shot { width: 840px; }
+.s9 .pair { display: flex; gap: 48px; align-items: flex-start; }
+.s9 figure { margin: 0; }
+.s9 figure:first-child { width: 720px; }
+.s9 figure:last-child { width: 960px; }
+.s9 figcaption { margin-top: 22px; font-size: 26px; line-height: 1.4; color: var(--text-2); }
+.s9 figcaption b { color: var(--text); font-size: 30px; display: block; margin-bottom: 4px; }
+.s10 .text { width: 590px; flex: none; }
+.s10 .shot { width: 1090px; }
+.s11 .shot { width: 1728px; }
+.cols { display: flex; gap: 72px; margin-top: 34px; }
+.cols p { margin: 0; flex: 1; font-size: 27px; line-height: 1.45; color: var(--text-2); }
+.cols b { display: block; color: var(--text); font-size: 31px; margin-bottom: 6px; }
+.s12 .text { width: 599px; flex: none; }
+.s12 .shot { width: 1081px; }
+.s13 .shot { width: 520px; flex: none; }
+.s13 .cap { margin: 16px 0 0; font-size: 24px; color: var(--muted); max-width: 520px; line-height: 1.35; }
+.s13 .lists { flex: 1; display: flex; flex-direction: column; gap: 44px; }
+.s13 h3, .s14 h3 { margin: 0 0 6px; font-size: 34px; line-height: 1.2; }
+.s13 .facts li, .s14 .facts li { padding: 15px 0; }
+.s13 .facts span, .s14 .facts span { font-size: 26px; }
+.s14 { padding: 0; flex-direction: row; }
+.s14 .main { flex: 1; padding: 76px 88px 64px 96px; display: flex; flex-direction: column; justify-content: center; }
+.s14 .side { width: 760px; flex: none; background: var(--panel); padding: 76px 96px 64px 72px; display: flex; flex-direction: column; justify-content: center; }
+.s14 .side h3 { color: #e9e3ff; margin-bottom: 14px; }
+.s14 ol { margin: 0; padding-left: 38px; font-size: 28px; line-height: 1.4; color: #ece7ff; }
+.s14 ol li { margin-bottom: 16px; padding-left: 6px; }
+.s14 .end { margin: 36px 0 0; font-size: 30px; color: #ece7ff; line-height: 1.35; }
+.s14 .brand { margin: 0 0 22px; font-size: 30px; color: var(--muted); }
+
+.ui {
+  position: fixed; left: 0; right: 0; bottom: 0; height: var(--bar); z-index: 10;
+  display: flex; align-items: center; gap: 10px; padding: 0 16px;
+  background: #0b0d1f; border-top: 1px solid var(--line); font-size: 15px; color: var(--text-2);
+  transition: opacity .2s ease;
+}
+body.fs.idle .ui { opacity: 0; pointer-events: none; }
+.progress { position: absolute; left: 0; top: -1px; height: 3px; width: 0; background: linear-gradient(90deg, var(--violet), var(--blue)); transition: width .25s ease; }
+.ui nav { display: flex; gap: 8px; margin-left: auto; }
+.ui .count { font-weight: 700; color: var(--text); white-space: nowrap; }
+.ui .ctitle { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.btn { height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: #e9e3ff; font: inherit; font-weight: 600; }
+.btn:hover:not(:disabled) { background: #19163a; border-color: var(--violet); }
+.btn:active:not(:disabled) { transform: translateY(1px); background: #221d4a; }
+.btn:focus-visible, dialog button:focus-visible { outline: 3px solid var(--violet); outline-offset: 2px; }
+#notes { position: fixed; left: 0; right: 0; bottom: var(--bar); z-index: 9; max-height: 32vh; overflow: auto; padding: 14px 24px; background: #19163a; border-top: 1px solid var(--line); font-size: 18px; line-height: 1.5; color: var(--text); }
+#notes[hidden] { display: none; }
+dialog { width: min(720px, 92vw); max-height: 82vh; padding: 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--text); }
+dialog::backdrop { background: rgba(4, 5, 14, .72); }
+dialog h2 { font-size: 28px; margin-bottom: 14px; }
+dialog ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+dialog ol button { width: 100%; min-height: 44px; display: flex; gap: 14px; align-items: center; padding: 8px 14px; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--text); font: inherit; font-size: 17px; text-align: left; }
+dialog ol button:hover, dialog ol button[aria-current="true"] { background: #19163a; border-color: var(--line); }
+dialog ol .num { min-width: 28px; font-weight: 700; color: var(--violet-t); }
+dialog .close { margin-top: 14px; }
+.hint { display: none; position: fixed; left: 12px; right: 12px; top: 10px; z-index: 11; padding: 10px 14px; border-radius: 10px; background: var(--panel); color: #ece7ff; font-size: 15px; }
+
+@media (max-width: 720px) {
+  .ui .ctitle, #btn-notes, #btn-full { display: none; }
+  .btn { padding: 0 12px; }
+}
+@media (max-width: 720px) and (orientation: portrait) { .hint { display: block; } }
+@media (prefers-reduced-motion: reduce) {
+  .slide, [data-step], .progress, .ui { transition: none !important; }
+}
+@media print {
+  @page { size: 1920px 1080px; margin: 0; }
+  html, body { width: 1920px; height: auto; overflow: visible; background: var(--ink); }
+  .viewport { position: static; overflow: visible; }
+  .stage { position: static; transform: none; width: 1920px; height: auto; overflow: visible; }
+  .slide { position: relative; inset: auto; width: 1920px; height: 1080px; opacity: 1 !important; visibility: visible !important; transform: none !important; break-after: page; page-break-after: always; overflow: hidden; }
+  [data-step] { opacity: 1 !important; transform: none !important; }
+  .ui, #notes, .hint, dialog { display: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="sr-only">
+  <p>Presentasi Q-PULSE, 14 slide. Pindah slide dengan panah kiri dan kanan, Home dan End untuk awal dan akhir, O untuk daftar slide, N untuk catatan, F untuk layar penuh.</p>
+</header>
+
+<main class="viewport" id="viewport">
+<div class="stage" id="stage">
+
+  <section class="slide s1" data-title="Q-PULSE" aria-label="Slide 1">
+    <p class="meta">QMDxKiro, November 2026</p>
+    <h1>Q-PULSE</h1>
+    <p class="lead">Dari requirement sampai pengingat di WhatsApp, dan cek defect langsung terhadap desain Figma.</p>
+    <figure class="shot one"><img src="assets/testcase-review.png" width="1106" height="913" fetchpriority="high" alt="Tabel review test case dengan status USE dan REMOVE serta tombol export"><span class="sample">Data contoh</span></figure>
+    <figure class="shot two"><img src="assets/compare-marks.png" width="1110" height="774" fetchpriority="high" alt="Dua tampilan layar berdampingan dengan kotak bernomor di area yang berbeda"><span class="sample">Data contoh</span></figure>
+    <p class="notes">Aplikasi ini punya banyak menu. Hari ini saya hanya bahas dua alur: dari test case sampai WhatsApp, dan Compare Defect. Semua gambar adalah tampilan asli aplikasi dengan data contoh.</p>
+  </section>
+
+  <section class="slide s2" data-title="Satu fitur baru, empat pekerjaan yang berulang" aria-label="Slide 2">
+    <div class="side">
+      <p class="kicker">Latar belakang</p>
+      <h2>Satu fitur baru, empat pekerjaan yang berulang</h2>
+    </div>
+    <div class="main">
+      <ol class="rows">
+        <li data-step="1"><span class="n">01</span><div><b>Menulis test case</b><span>Skenario per biller dan per kondisi ditulis satu per satu dari dokumen requirement.</span></div></li>
+        <li data-step="2"><span class="n">02</span><div><b>Mengisi tiket UQA</b><span>Lebih dari 20 field di Jira, hampir semuanya sama dengan tiket sebelumnya.</span></div></li>
+        <li data-step="3"><span class="n">03</span><div><b>Mengingatkan tiket</b><span>Tiket yang belum Done dicek satu per satu, lalu dikabari lewat chat.</span></div></li>
+        <li data-step="4"><span class="n">04</span><div><b>Memeriksa defect</b><span>Screenshot dibandingkan dengan frame Figma menggunakan mata.</span></div></li>
+      </ol>
+    </div>
+    <p class="notes">Ini yang kita lakukan setiap ada fitur baru. Tidak ada yang sulit, tapi semuanya berulang dan gampang terlewat, terutama pengingat tiket dan pengecekan defect.</p>
+  </section>
+
+  <section class="slide s3" data-title="Dua alur dalam satu aplikasi" aria-label="Slide 3">
+    <div class="head"><p class="kicker">Gambaran besar</p><h2>Dua alur dalam satu aplikasi</h2></div>
+    <div class="lanes">
+      <div class="lane lane-a" data-step="1">
+        <div class="lane-name"><b>Alur A</b><span>Test case sampai WhatsApp</span></div>
+        <ol class="nodes">
+          <li><b>Requirement</b><span>Tempel teks atau baca dari link Confluence</span></li>
+          <li><b>Test case</b><span>AI menyusun skenario, kamu memilih yang dipakai</span></li>
+          <li><b>Tiket UQA</b><span>Form terisi, tiket dibuat di Jira setelah kamu klik</span></li>
+          <li><b>WhatsApp</b><span>Pengingat dan laporan terkirim ke nomor atau grup</span></li>
+        </ol>
+      </div>
+      <div class="lane lane-b" data-step="2">
+        <div class="lane-name"><b>Alur B</b><span>Compare Defect</span></div>
+        <ol class="nodes">
+          <li><b>Desain dan defect</b><span>Frame Figma atau gambar upload, plus gambar dari tiket Jira</span></li>
+          <li><b>Perbandingan</b><span>Berdampingan, slider, atau overlay, dengan analisis AI opsional</span></li>
+          <li><b>Komentar Jira</b><span>Draf direview dulu, lalu dikirim bersama gambar bertanda</span></li>
+        </ol>
+      </div>
+    </div>
+    <p class="notes">Alur A berjalan dari requirement sampai pesan WhatsApp. Alur B berdiri sendiri: bandingkan desain dengan defect lalu tulis hasilnya ke tiket. Keduanya memakai data dari Jira yang sama.</p>
+  </section>
+
+  <section class="slide s4" data-title="Requirement masuk, skenario keluar" aria-label="Slide 4">
+    <div class="head"><p class="kicker">Alur A, langkah 1: test case</p><h2>Requirement masuk, skenario keluar</h2></div>
+    <div class="body">
+      <ul class="facts text">
+        <li data-step="1"><b>Dua sumber input</b><span>Tempel teks requirement, atau masukkan link halaman Confluence dan isinya dibaca otomatis.</span></li>
+        <li data-step="2"><b>Tiga batch paralel</b><span>Transaksi, timeout, dan validasi sistem disusun bersamaan, tidak menunggu satu per satu.</span></li>
+        <li data-step="3"><b>Satu skenario per biller</b><span>Requirement dengan beberapa biller menghasilkan skenario terpisah untuk tiap biller.</span></li>
+      </ul>
+      <figure class="shot"><img src="assets/testcase-input.png" width="1136" height="617" alt="Halaman Test Case Generate dengan link Confluence terisi dan teks requirement hasil bacaan"><span class="sample">Data contoh</span></figure>
+    </div>
+    <p class="notes">Requirement bisa ditempel langsung atau dibaca dari halaman Confluence. Hasil bacaan masuk ke kolom yang sama, jadi kamu bisa mengeditnya sebelum Generate. AI menyusun skenario dalam tiga batch yang jalan bersamaan.</p>
+  </section>
+
+  <section class="slide s5" data-title="Kamu yang memutuskan skenario yang dipakai" aria-label="Slide 5">
+    <div class="head"><p class="kicker">Alur A, langkah 2: review</p><h2>Kamu yang memutuskan skenario mana yang dipakai</h2></div>
+    <div class="body">
+      <figure class="shot"><img src="assets/testcase-review.png" width="1106" height="913" alt="Tabel delapan test case, tujuh berstatus USE dan satu REMOVE, dengan tombol Finalize dan export"><span class="sample">Data contoh</span></figure>
+      <ul class="facts text">
+        <li data-step="1"><b>Tandai tiap skenario</b><span>USE, REMOVE, atau edit. Ada juga tombol untuk memakai atau menghapus semuanya.</span></li>
+        <li data-step="2"><b>Finalize membawa yang USE</b><span>Skenario yang dihapus tidak ikut ke keluaran.</span></li>
+        <li data-step="3"><b>Tiga bentuk keluaran</b><span>Halaman Confluence langsung dari aplikasi, file HTML, atau CSV.</span></li>
+      </ul>
+    </div>
+    <p class="notes">AI hanya mengusulkan. Setiap skenario kamu putuskan sendiri. Setelah Finalize, jumlah yang dipakai itu juga yang nanti mengisi kolom SIT dan UAT di tiket.</p>
+  </section>
+
+  <section class="slide s6" data-title="Tiket UQA sudah terisi" aria-label="Slide 6">
+    <div class="head"><p class="kicker">Alur A, langkah 3: tiket Jira</p><h2>Tiket UQA sudah terisi, kamu tinggal memeriksa</h2></div>
+    <div class="body">
+      <ul class="facts text">
+        <li data-step="1"><b>Dihitung dan diisi otomatis</b><span>Isi awal dari tiket UQA sebelumnya. Working Weeks dan Months dari tanggal hari ini, SIT dan UAT dari jumlah skenario yang dipakai.</span></li>
+        <li data-step="2"><b>Sengaja dikosongkan</b><div class="chips"><i>Assignee</i><i>Product Tester</i><i>NCM IRIS</i><i>Link CM</i><i>Defect SIT</i></div></li>
+        <li data-step="3"><b>Dibuat setelah kamu klik</b><span>Tiket baru muncul di Jira hanya setelah tombol Buat Tiket ditekan.</span></li>
+      </ul>
+      <div class="shots">
+        <figure class="shot"><img src="assets/jira-atas.png" width="640" height="843" alt="Bagian atas form review tiket Jira UQA"><span class="sample">Data contoh</span></figure>
+        <figure class="shot"><img src="assets/jira-bawah.png" width="640" height="949" alt="Bagian bawah form review: reminder, working weeks, jumlah test case, dan tombol Buat Tiket"></figure>
+      </div>
+    </div>
+    <p class="notes">Form ini menggantikan belasan klik di Jira. Semua kolom tetap bisa diedit. Kolom yang berisi data orang atau data change management sengaja kosong, supaya tidak ada yang terisi tanpa disengaja.</p>
+  </section>
+
+  <section class="slide s7" data-title="Tiket yang belum Done diingatkan otomatis" aria-label="Slide 7">
+    <div class="head"><p class="kicker">Alur A, langkah 4: WhatsApp</p><h2>Tiket yang belum Done diingatkan otomatis</h2></div>
+    <div class="body">
+      <figure class="shot"><img src="assets/wa-chat.png" width="520" height="780" alt="Percakapan WhatsApp berisi pesan pengingat tiket dan satu file laporan HTML"><span class="sample">Tampilan contoh</span></figure>
+      <ul class="facts text">
+        <li data-step="1"><b>Waktu</b><span>Diatur per tiket di form. Bawaannya 3 hari lagi jam 09.00, dan bisa diubah ke beberapa menit untuk uji coba.</span></li>
+        <li data-step="2"><b>Cek</b><span>Saat waktunya tiba, bot membaca status tiket langsung dari Jira. Antrean diperiksa tiap 30 detik.</span></li>
+        <li data-step="3"><b>Kirim</b><span>Pesan terkirim hanya kalau status belum Done. Tiket yang sudah Done atau sudah dihapus dilewati.</span></li>
+        <li data-step="4"><b>Tujuan</b><span>Nomor pribadi dan grup WhatsApp yang diatur di <code>.env.wa</code>.</span></li>
+      </ul>
+    </div>
+    <p class="notes">Pesan berisi key tiket, judul, status, dan link yang bisa langsung diklik. Kalau tiketnya sudah Done, bot diam. Jadi pesan yang masuk memang tiket yang perlu dilihat.</p>
+  </section>
+
+  <section class="slide s8" data-title="Laporan UQA jadi satu file" aria-label="Slide 8">
+    <div class="head"><p class="kicker">Alur A, langkah 5: laporan</p><h2>Laporan UQA jadi satu file dan terkirim ke WhatsApp</h2></div>
+    <div class="pair">
+      <figure class="shot"><img src="assets/report-ui.png" width="1090" height="759" alt="Daftar review laporan UQA dengan tombol edit dan hapus di tiap baris dan tombol Kirim ke WhatsApp"><span class="sample">Review, data contoh</span></figure>
+      <figure class="shot"><img src="assets/report-html.png" width="1240" height="860" alt="Laporan HTML dengan kartu ringkasan, sebaran status, dan tabel tiket"><span class="sample">Hasil, data contoh</span></figure>
+    </div>
+    <div class="cols">
+      <p data-step="1"><b>Filter</b>Start dan Finish Date QA, atau tanggal tiket dibuat, dengan opsi selain yang sudah Done.</p>
+      <p data-step="2"><b>Review</b>Edit atau hapus baris sebelum dikirim. Product Tester yang lebih dari satu tampil bersusun.</p>
+      <p data-step="3"><b>Kirim</b>File HTML berisi status, jumlah SIT dan UAT, serta defect. Nama file memuat rentang tanggalnya.</p>
+    </div>
+    <p class="notes">Filter memakai query JQL yang sama dengan yang biasa dipakai tim. Hasilnya bisa kamu rapikan dulu di tabel review, lalu satu file HTML terkirim ke WhatsApp dan bisa dibuka di browser.</p>
+  </section>
+
+  <section class="slide s9 lane-b" data-title="Lihat dulu desain dan gambar defect" aria-label="Slide 9">
+    <div class="head"><p class="kicker b">Alur B: Compare Defect</p><h2>Lihat dulu desain dan gambar defect, baru bandingkan</h2></div>
+    <div class="pair">
+      <figure data-step="1">
+        <div class="shot"><img src="assets/compare-figma.png" width="1078" height="773" alt="Pratinjau frame desain dengan tombol Preview Desain dan pilihan resolusi"><span class="sample">Data contoh</span></div>
+        <figcaption><b>Desain</b>Link frame Figma atau section berisi beberapa layar. Kalau kuota API Figma habis, gambar bisa diunggah atau ditempel.</figcaption>
+      </figure>
+      <figure data-step="2">
+        <div class="shot"><img src="assets/compare-jira.png" width="1078" height="595" alt="Pratinjau tiket Jira dengan dua lampiran gambar, satu ditandai sebagai gambar di deskripsi"><span class="sample">Data contoh</span></div>
+        <figcaption><b>Defect</b>Semua lampiran gambar tiket tampil. Gambar yang ada di deskripsi dipilih otomatis. Tombol Bandingkan aktif setelah keduanya dipilih.</figcaption>
+      </figure>
+    </div>
+    <p class="notes">Dua sumber ini dipratinjau terpisah supaya kamu yakin yang dibandingkan memang pasangan yang benar. Link Figma boleh menunjuk ke satu frame atau ke section berisi banyak layar, lalu kamu pilih salah satu.</p>
+  </section>
+
+  <section class="slide s10 lane-b" data-title="Perbedaan ditandai di kedua gambar" aria-label="Slide 10">
+    <div class="head"><p class="kicker b">Alur B: Compare Defect</p><h2>Perbedaan ditandai di kedua gambar</h2></div>
+    <div class="body">
+      <ul class="facts text">
+        <li data-step="1"><b>Tiga mode tampilan</b><span>Berdampingan, slider, dan overlay dengan pengatur transparansi.</span></li>
+        <li data-step="2"><b>AI opsional</b><span>Gambar baru dikirim ke layanan AI eksternal setelah kamu mencentang persetujuan dan mengonfirmasi di dialog.</span></li>
+        <li data-step="3"><b>Kotak bernomor</b><span>Nomornya sama dengan baris di tabel hasil. Warna kotak mengikuti tingkat HIGH, MEDIUM, atau LOW.</span></li>
+      </ul>
+      <figure class="shot"><img src="assets/compare-marks.png" width="1110" height="774" alt="Desain dan gambar defect berdampingan dengan tiga kotak bernomor di judul, nominal, dan tombol"><span class="sample">Data contoh</span></figure>
+    </div>
+    <p class="notes">Tanpa AI pun kamu bisa membandingkan secara visual dengan tiga mode ini. Kalau AI dipakai, perbedaan ditandai dengan kotak yang nomornya cocok dengan tabel hasil.</p>
+  </section>
+
+  <section class="slide s11 lane-b" data-title="Hasil analisis per area" aria-label="Slide 11">
+    <div class="head"><p class="kicker b">Alur B: Compare Defect</p><h2>Hasil analisis tampil sebagai tabel per area</h2></div>
+    <figure class="shot"><img src="assets/compare-result.png" width="1082" height="330" alt="Penilaian Defect valid dan tabel tiga perbedaan lengkap dengan isi desain, isi aktual, dan tingkat"><span class="sample">Hasil contoh</span></figure>
+    <div class="cols">
+      <p data-step="1"><b>Penilaian</b>Defect valid, sesuai desain, atau perlu dicek manual, disertai kesesuaian dengan isi tiket.</p>
+      <p data-step="2"><b>Tiap perbedaan</b>Punya area, isi di desain, isi aktual, dan tingkat. Arahkan kursor ke baris untuk menyorot kotaknya di gambar.</p>
+      <p data-step="3"><b>Tetap diverifikasi</b>Hasil dan posisi kotak dari AI bisa keliru, jadi QA memeriksanya dengan mata sebelum dipakai.</p>
+    </div>
+    <p class="notes">Angka dan isi tabel di slide ini adalah contoh. AI hanya membantu menemukan area yang perlu dilihat. Keputusan tetap di QA.</p>
+  </section>
+
+  <section class="slide s12 lane-b" data-title="Komentar ke Jira direview dulu" aria-label="Slide 12">
+    <div class="head"><p class="kicker b">Alur B: Compare Defect</p><h2>Komentar ke Jira direview dulu, baru dikirim</h2></div>
+    <div class="body">
+      <ul class="facts text">
+        <li data-step="1"><b>Draf terisi sendiri</b><span>Penilaian, ringkasan, link frame Figma, dan tabel perbedaan dalam format Jira.</span></li>
+        <li data-step="2"><b>Bebas diedit</b><span>Ubah sampai sesuai, atau buat ulang draf dari hasil analisis.</span></li>
+        <li data-step="3"><b>Gambar bertanda ikut</b><span>Gambar perbandingan dengan kotak bernomor diunggah ke tiket sebagai lampiran.</span></li>
+        <li data-step="4"><b>Kirim setelah konfirmasi</b><span>Dialog menunjukkan tiket tujuan, panjang komentar, dan status lampiran.</span></li>
+      </ul>
+      <figure class="shot"><img src="assets/compare-comment.png" width="1114" height="819" alt="Draf komentar format Jira dan pratinjau gambar perbandingan bertanda, dengan tombol Kirim Komentar ke Jira"><span class="sample">Data contoh</span></figure>
+    </div>
+    <p class="notes">Komentar tidak pernah terkirim sendiri. Kamu membaca drafnya, mengubah seperlunya, lalu menekan kirim dan mengonfirmasi di dialog. Gambar bertanda ikut menjadi lampiran tiket.</p>
+  </section>
+
+  <section class="slide s13" data-title="Yang sengaja tidak berjalan sendiri" aria-label="Slide 13">
+    <div class="head"><p class="kicker">Kontrol dan batas</p><h2>Yang sengaja tidak berjalan sendiri</h2></div>
+    <div class="body">
+      <div>
+        <figure class="shot"><img src="assets/dialog-kirim.png" width="460" height="412" alt="Dialog Kirim Laporan ke WhatsApp berisi judul, periode, jumlah tiket, nama file, dan tujuan"></figure>
+        <p class="cap">Contoh dialog konfirmasi sebelum laporan terkirim.</p>
+      </div>
+      <div class="lists">
+        <div data-step="1">
+          <h3>Selalu menunggu persetujuan kamu</h3>
+          <ul class="facts">
+            <li><span>Tiket Jira dibuat setelah tombol Buat Tiket ditekan.</span></li>
+            <li><span>Komentar dan lampiran ke Jira terkirim setelah dialog konfirmasi.</span></li>
+            <li><span>Gambar dikirim ke layanan AI setelah persetujuan dicentang dan dikonfirmasi.</span></li>
+            <li><span>Laporan ke WhatsApp terkirim setelah dialog konfirmasi.</span></li>
+          </ul>
+        </div>
+        <div data-step="2">
+          <h3>Batas yang perlu diketahui</h3>
+          <ul class="facts">
+            <li><span>Bot WhatsApp harus berjalan saat pengingat jatuh tempo. Yang terlewat dikirim ketika bot hidup lagi.</span></li>
+            <li><span>WhatsApp memakai library tidak resmi, jadi sesi bisa terputus dan perlu scan QR ulang.</span></li>
+            <li><span>Seat Figma View atau Collab hanya punya sekitar 6 request API per bulan. Render disimpan 7 hari, dan ada opsi upload gambar.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <p class="notes">Semua langkah yang mengubah data di luar aplikasi, yaitu membuat tiket, menulis komentar, mengirim gambar ke AI, dan mengirim WhatsApp, menunggu konfirmasi kamu. Batas di kolom kanan sebaiknya diketahui sebelum dipakai tim.</p>
+  </section>
+
+  <section class="slide s14" data-title="Jalan lokal sekarang, online setelah izin" aria-label="Slide 14">
+    <div class="main">
+      <p class="brand">Q-PULSE · QMDxKiro</p>
+      <h2>Jalan di komputer lokal sekarang, online setelah izin keamanan</h2>
+      <h3 style="margin-top:44px">Untuk menjalankannya</h3>
+      <ul class="facts">
+        <li data-step="1"><span>Node.js dan dependensi proyek.</span></li>
+        <li data-step="1"><span>Token Jira dan Confluence di <code>.env</code>, plus token Figma untuk Compare Defect.</span></li>
+        <li data-step="1"><span>API key untuk analisis AI, dan satu nomor WhatsApp untuk bot (scan QR sekali).</span></li>
+      </ul>
+    </div>
+    <div class="side">
+      <h3>Usulan berikutnya</h3>
+      <ol>
+        <li data-step="2">Coba satu fitur nyata dari requirement sampai pengingat WhatsApp.</li>
+        <li data-step="2">Tentukan grup WhatsApp tujuan pengingat dan laporan.</li>
+        <li data-step="2">Minta seat Figma Dev kalau Compare Defect sering dipakai.</li>
+      </ol>
+      <p class="end" data-step="3">Sebelum aplikasi dipindah ke server, tanyakan ke tim keamanan. Aplikasi ini memakai token dan terhubung ke sistem BRI.</p>
+    </div>
+    <p class="notes">Sekarang aplikasi berjalan di komputer lokal. Untuk online, perlu izin tim keamanan dan login per pengguna, karena aplikasi memakai token dan menyentuh sistem BRI.</p>
+  </section>
+
+</div>
+</main>
+
+<aside id="notes" hidden aria-label="Catatan presenter"></aside>
+
+<footer class="ui">
+  <div class="progress" id="progress"></div>
+  <span class="count" id="count">1 / 14</span>
+  <span class="ctitle" id="ctitle"></span>
+  <nav aria-label="Navigasi slide">
+    <button class="btn" id="btn-prev" type="button" aria-label="Slide sebelumnya">Sebelumnya</button>
+    <button class="btn" id="btn-next" type="button" aria-label="Slide berikutnya">Berikutnya</button>
+    <button class="btn" id="btn-list" type="button" aria-haspopup="dialog">Daftar</button>
+    <button class="btn" id="btn-notes" type="button" aria-controls="notes" aria-expanded="false">Catatan</button>
+    <button class="btn" id="btn-full" type="button">Layar penuh</button>
+  </nav>
+</footer>
+
+<dialog id="overview" aria-labelledby="ov-title">
+  <h2 id="ov-title">Daftar slide</h2>
+  <ol id="ov-list"></ol>
+  <button class="btn close" id="ov-close" type="button">Tutup</button>
+</dialog>
+
+<p class="hint" role="note">Putar layar ke landscape supaya slide terbaca.</p>
+
+<script>
+(() => {
+  const W = 1920, H = 1080;
+  const stage = document.getElementById('stage');
+  const slides = [...stage.querySelectorAll('.slide')];
+  const N = slides.length;
+  const maxStep = slides.map(s => Math.max(0, ...[...s.querySelectorAll('[data-step]')].map(e => +e.dataset.step)));
+  const shown = slides.map(() => 0);
+  const $ = (id) => document.getElementById(id);
+  const notes = $('notes'), overview = $('overview');
+  let cur = 0;
+
+  function fit() {
+    const bar = document.body.classList.contains('fs') ? 0 : $('btn-prev').closest('.ui').offsetHeight;
+    const nh = notes.hidden ? 0 : notes.offsetHeight;
+    const s = Math.min(innerWidth / W, (innerHeight - bar - nh) / H);
+    stage.style.setProperty('--scale', s);
+    $('viewport').style.bottom = (bar + nh) + 'px';
+  }
+
+  function paint() {
+    slides.forEach((s, i) => {
+      s.classList.toggle('active', i === cur);
+      s.classList.toggle('past', i < cur);
+      s.inert = i !== cur;
+      s.setAttribute('aria-hidden', i === cur ? 'false' : 'true');
+      s.querySelectorAll('[data-step]').forEach(e => e.classList.toggle('on', +e.dataset.step <= shown[i]));
+    });
+    const title = slides[cur].dataset.title;
+    $('count').textContent = (cur + 1) + ' / ' + N;
+    $('ctitle').textContent = title;
+    $('progress').style.width = (N > 1 ? cur / (N - 1) * 100 : 100) + '%';
+    $('btn-prev').disabled = cur === 0 && shown[0] === 0;
+    $('btn-next').disabled = cur === N - 1 && shown[cur] >= maxStep[cur];
+    notes.textContent = slides[cur].querySelector('.notes')?.textContent || '';
+    $('ov-list').querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-current', String(i === cur)));
+    if (location.hash !== '#' + (cur + 1)) history.replaceState(null, '', '#' + (cur + 1));
+    document.title = (cur + 1) + '. ' + title + ' | Q-PULSE';
+  }
+
+  function go(n, step) {
+    cur = Math.max(0, Math.min(N - 1, n));
+    slides.forEach((_, i) => { shown[i] = i < cur ? maxStep[i] : 0; });
+    shown[cur] = Math.max(0, Math.min(maxStep[cur], step || 0));
+    paint();
+  }
+  function next() { if (shown[cur] < maxStep[cur]) { shown[cur]++; paint(); } else if (cur < N - 1) go(cur + 1, 0); }
+  function prev() { if (shown[cur] > 0) { shown[cur]--; paint(); } else if (cur > 0) go(cur - 1, maxStep[cur - 1]); }
+
+  $('ov-list').innerHTML = slides.map((s, i) =>
+    `<li><button type="button" data-go="${i}"><span class="num">${i + 1}</span><span>${s.dataset.title}</span></button></li>`).join('');
+  $('ov-list').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-go]');
+    if (b) { overview.close(); go(+b.dataset.go, 0); }
+  });
+  overview.addEventListener('click', (e) => { if (e.target === overview) overview.close(); });
+  $('ov-close').addEventListener('click', () => overview.close());
+
+  const toggleNotes = () => {
+    notes.hidden = !notes.hidden;
+    $('btn-notes').setAttribute('aria-expanded', String(!notes.hidden));
+    fit();
+  };
+  const toggleFull = () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen?.();
+  };
+
+  $('btn-prev').addEventListener('click', prev);
+  $('btn-next').addEventListener('click', next);
+  $('btn-list').addEventListener('click', () => overview.showModal());
+  $('btn-notes').addEventListener('click', toggleNotes);
+  $('btn-full').addEventListener('click', toggleFull);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || overview.open) return;
+    const onControl = e.target.closest('button, a, input, textarea, select');
+    const k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown') next();
+    else if (k === 'ArrowLeft' || k === 'PageUp') prev();
+    else if (k === 'Home') go(0, 0);
+    else if (k === 'End') go(N - 1, maxStep[N - 1]);
+    else if ((k === ' ' || k === 'Enter') && !onControl) { e.shiftKey ? prev() : next(); }
+    else if (k === 'o' || k === 'O' || k === 'g' || k === 'G') overview.showModal();
+    else if (k === 'n' || k === 'N') toggleNotes();
+    else if (k === 'f' || k === 'F') toggleFull();
+    else return;
+    e.preventDefault();
+  });
+
+  let x0 = null;
+  stage.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) (dx < 0 ? next : prev)();
+    x0 = null;
+  }, { passive: true });
+
+  let idle;
+  const wake = () => {
+    document.body.classList.remove('idle');
+    clearTimeout(idle);
+    if (document.fullscreenElement) idle = setTimeout(() => document.body.classList.add('idle'), 2500);
+  };
+  ['mousemove', 'keydown', 'touchstart', 'focusin'].forEach(ev => document.addEventListener(ev, wake, { passive: true }));
+  document.addEventListener('fullscreenchange', () => {
+    const on = !!document.fullscreenElement;
+    document.body.classList.toggle('fs', on);
+    $('btn-full').textContent = on ? 'Keluar layar penuh' : 'Layar penuh';
+    wake(); fit();
+  });
+
+  addEventListener('resize', fit);
+  addEventListener('hashchange', () => {
+    const n = parseInt(location.hash.slice(1), 10);
+    if (n >= 1 && n <= N && n - 1 !== cur) go(n - 1, 0);
+  });
+
+  const start = parseInt(location.hash.slice(1), 10);
+  fit();
+  go(start >= 1 && start <= N ? start - 1 : 0, 0);
+})();
+</script>
+</body>
+</html>
