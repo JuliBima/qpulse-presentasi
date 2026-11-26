@@ -48,3 +48,7 @@ Buka: `open presentasi-qpulse/index.html`.
 - Slide 6 baru: Epic, Test Set, Test, folder Test Repository, dan halaman Confluence dengan nomor Jira. Gambar `auto-modal.png` dan `auto-hasil.png`, data contoh project `DEMO`.
 - Slide 3 dan 14 menyesuaikan alur baru. Nomor langkah Alur A bergeser satu.
 - Slide 3 dan 4: requirement bisa dari FRD plus sampai 5 dokumen Confluence tambahan. `testcase-input.png` diganti, lebar gambar di slide 4 jadi 860px supaya muat.
+- Slide 3 baru: QCDSM, masalah dan target. Angka (Miss SLA QA 33%, target <5%, 100% requirement, zero critical defect) dari gambar yang diberikan pengguna, dicantumkan "Angka masalah dan target dari tim QA".
+- Slide 5 baru: diagram FRD. Dokumen yang dibaca, dan judul FRD tanpa awalan menjadi nama Epic, Test Set, folder, dan usulan judul Confluence. Diagram HTML, bukan screenshot.
+- Slide 9 baru: struktur Epic, Test Set, Test, folder, Confluence, dan empat pengecekan supaya tidak ada Epic atau Test dobel.
+- Total 18 slide.

@@ -35,3 +35,13 @@ Judul modal `Review Tiket Jira UQA` di aplikasi memakai warna inline `#0747a6`, 
 | Tanda pisah panjang | PASS | 0 |
 | Slide 4, 5, 6, 14 dilihat langsung | PASS | tidak ada teks terpotong atau tumpang tindih |
 | Navigasi keyboard, daftar, catatan | TIDAK DIULANG | logika navigasi tidak diubah, jumlah slide dibaca otomatis |
+
+## Ulang setelah slide QCDSM, FRD, dan struktur
+| Item | Hasil | Bukti |
+|---|---|---|
+| Jumlah slide | PASS | 18 |
+| Gambar | PASS | semua dimuat, rasio sesuai |
+| Batas bawah 1016px slide 3 sampai 17 | PASS | maksimal 1016 |
+| PDF | PASS | 18 halaman |
+| Error JS, em dash | PASS | 0 |
+| Slide 3, 5, 9 dilihat langsung | PASS | tidak ada teks terpotong |
