@@ -1,7 +1,7 @@
 # DESIGN: Presentasi Q-PULSE
 
 ## Identitas
-Deck satu file (`index.html`, CSS dan JS inline) plus `assets/*.png`. Menjual dua fitur: Alur A (test case, tiket Jira UQA, WhatsApp) dan Alur B (Compare Defect). 14 slide, panggung tetap 1920x1080 yang diskalakan ke layar.
+Deck satu file (`index.html`, CSS dan JS inline) plus `assets/*.png`. Menjual dua fitur: Alur A (test case dengan jenis fitur, Test Jira dan halaman Confluence sekali klik, tiket Jira UQA, WhatsApp) dan Alur B (Compare Defect). 15 slide, panggung tetap 1920x1080 yang diskalakan ke layar.
 
 ## Palet (dari chat pengguna)
 | Hex | Peran |
@@ -41,3 +41,9 @@ ENERGY 2, RHYTHM 3, MOTION 2. Gerak hanya untuk memunculkan fragmen dan pindah s
 
 Cetak ke PDF: ukuran 1920x1080, satu slide per halaman (CSS cetak sudah disiapkan).
 Buka: `open presentasi-qpulse/index.html`.
+
+## Pembaruan 26-11-2026
+- Slide 4: pilihan jenis fitur Transaksi atau Non-transaksi, gambar `testcase-input.png` diganti.
+- Slide 5: tiga tombol keluaran (Download CSV, Auto Create Confluence Page, Buat Jira UQA), gambar `testcase-review.png` diganti.
+- Slide 6 baru: Epic, Test Set, Test, folder Test Repository, dan halaman Confluence dengan nomor Jira. Gambar `auto-modal.png` dan `auto-hasil.png`, data contoh project `DEMO`.
+- Slide 3 dan 14 menyesuaikan alur baru. Nomor langkah Alur A bergeser satu.

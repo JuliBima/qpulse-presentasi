@@ -111,8 +111,11 @@ code, .mono { font-family: var(--mono); font-size: .9em; color: var(--text); }
 
 .s4 .text { width: 640px; flex: none; }
 .s4 .shot { width: 1032px; }
-.s5 .shot { width: 963px; }
+.s5 .shot { width: 860px; margin-top: 36px; }
 .s5 .text { flex: 1; }
+.sauto .text { flex: 1; }
+.sauto .stack { display: flex; flex-direction: column; gap: 24px; margin-left: auto; width: 760px; flex: none; }
+.sauto .shot { width: 100%; }
 .s6 .text { width: 560px; flex: none; }
 .s6 .shots { display: flex; gap: 24px; align-items: flex-start; margin-left: auto; }
 .s6 .shot { width: 536px; }
@@ -220,7 +223,7 @@ dialog .close { margin-top: 14px; }
     </div>
     <div class="main">
       <ol class="rows">
-        <li data-step="1"><span class="n">01</span><div><b>Menulis test case</b><span>Skenario per biller dan per kondisi ditulis satu per satu dari dokumen requirement.</span></div></li>
+        <li data-step="1"><span class="n">01</span><div><b>Menulis test case</b><span>Skenario per biller dan per kondisi ditulis satu per satu, lalu disalin lagi ke Jira dan Confluence.</span></div></li>
         <li data-step="2"><span class="n">02</span><div><b>Mengisi tiket UQA</b><span>Lebih dari 20 field di Jira, hampir semuanya sama dengan tiket sebelumnya.</span></div></li>
         <li data-step="3"><span class="n">03</span><div><b>Mengingatkan tiket</b><span>Tiket yang belum Done dicek satu per satu, lalu dikabari lewat chat.</span></div></li>
         <li data-step="4"><span class="n">04</span><div><b>Memeriksa defect</b><span>Screenshot dibandingkan dengan frame Figma menggunakan mata.</span></div></li>
@@ -236,7 +239,7 @@ dialog .close { margin-top: 14px; }
         <div class="lane-name"><b>Alur A</b><span>Test case sampai WhatsApp</span></div>
         <ol class="nodes">
           <li><b>Requirement</b><span>Tempel teks atau baca dari link Confluence</span></li>
-          <li><b>Test case</b><span>AI menyusun skenario, kamu memilih yang dipakai</span></li>
+          <li><b>Test case</b><span>AI menyusun, kamu memilih, lalu dibuat di Jira dan Confluence</span></li>
           <li><b>Tiket UQA</b><span>Form terisi, tiket dibuat di Jira setelah kamu klik</span></li>
           <li><b>WhatsApp</b><span>Pengingat dan laporan terkirim ke nomor atau grup</span></li>
         </ol>
@@ -257,30 +260,46 @@ dialog .close { margin-top: 14px; }
     <div class="head"><p class="kicker">Alur A, langkah 1: test case</p><h2>Requirement masuk, skenario keluar</h2></div>
     <div class="body">
       <ul class="facts text">
-        <li data-step="1"><b>Dua sumber input</b><span>Tempel teks requirement, atau masukkan link halaman Confluence dan isinya dibaca otomatis.</span></li>
-        <li data-step="2"><b>Tiga batch paralel</b><span>Transaksi, timeout, dan validasi sistem disusun bersamaan, tidak menunggu satu per satu.</span></li>
-        <li data-step="3"><b>Satu skenario per biller</b><span>Requirement dengan beberapa biller menghasilkan skenario terpisah untuk tiap biller.</span></li>
+        <li data-step="1"><b>Jenis fitur dipilih dulu</b><span>Transaksi memakai skenario rekening, saldo, limit, PIN, dan receipt. Non-transaksi tidak memuat skenario rekening sama sekali.</span></li>
+        <li data-step="2"><b>Dua sumber input</b><span>Tempel teks requirement, atau masukkan link halaman Confluence dan isinya dibaca otomatis.</span></li>
+        <li data-step="3"><b>Tiga batch paralel</b><span>Disusun bersamaan sesuai jenis fitur. Beberapa biller menghasilkan skenario terpisah per biller.</span></li>
       </ul>
-      <figure class="shot"><img src="assets/testcase-input.png" width="1136" height="617" alt="Halaman Test Case Generate dengan link Confluence terisi dan teks requirement hasil bacaan"><span class="sample">Data contoh</span></figure>
+      <figure class="shot"><img src="assets/testcase-input.png" width="1136" height="748" alt="Halaman Test Case Generate dengan pilihan jenis fitur Transaksi atau Non-transaksi, link Confluence terisi, dan teks requirement hasil bacaan"><span class="sample">Data contoh</span></figure>
     </div>
-    <p class="notes">Requirement bisa ditempel langsung atau dibaca dari halaman Confluence. Hasil bacaan masuk ke kolom yang sama, jadi kamu bisa mengeditnya sebelum Generate. AI menyusun skenario dalam tiga batch yang jalan bersamaan.</p>
+    <p class="notes">Pilih dulu jenis fiturnya. Fitur non-transaksi seperti onboarding atau profil tidak akan mendapat skenario rekening Branch A atau B. Requirement bisa ditempel atau dibaca dari halaman Confluence, lalu diedit sebelum Generate.</p>
   </section>
 
   <section class="slide s5" data-title="Kamu yang memutuskan skenario yang dipakai" aria-label="Slide 5">
     <div class="head"><p class="kicker">Alur A, langkah 2: review</p><h2>Kamu yang memutuskan skenario mana yang dipakai</h2></div>
     <div class="body">
-      <figure class="shot"><img src="assets/testcase-review.png" width="1106" height="913" alt="Tabel delapan test case, tujuh berstatus USE dan satu REMOVE, dengan tombol Finalize dan export"><span class="sample">Data contoh</span></figure>
+      <figure class="shot"><img src="assets/testcase-review.png" width="1078" height="901" alt="Tabel delapan test case, tujuh berstatus USE dan satu REMOVE, dengan tombol Finalize dan tiga tombol keluaran"><span class="sample">Data contoh</span></figure>
       <ul class="facts text">
         <li data-step="1"><b>Tandai tiap skenario</b><span>USE, REMOVE, atau edit. Ada juga tombol untuk memakai atau menghapus semuanya.</span></li>
         <li data-step="2"><b>Finalize membawa yang USE</b><span>Skenario yang dihapus tidak ikut ke keluaran.</span></li>
-        <li data-step="3"><b>Tiga bentuk keluaran</b><span>Halaman Confluence langsung dari aplikasi, file HTML, atau CSV.</span></li>
+        <li data-step="3"><b>Tiga tombol keluaran</b><span>Download CSV, Auto Create Confluence Page yang sekaligus membuat test di Jira, dan Buat Jira UQA.</span></li>
       </ul>
     </div>
     <p class="notes">AI hanya mengusulkan. Setiap skenario kamu putuskan sendiri. Setelah Finalize, jumlah yang dipakai itu juga yang nanti mengisi kolom SIT dan UAT di tiket.</p>
   </section>
 
-  <section class="slide s6" data-title="Tiket UQA sudah terisi" aria-label="Slide 6">
-    <div class="head"><p class="kicker">Alur A, langkah 3: tiket Jira</p><h2>Tiket UQA sudah terisi, kamu tinggal memeriksa</h2></div>
+  <section class="slide sauto" data-title="Test Jira dan halaman Confluence sekali klik" aria-label="Slide 6">
+    <div class="head"><p class="kicker">Alur A, langkah 3: Jira dan Confluence</p><h2>Test di Jira dan halaman Confluence, sekali klik</h2></div>
+    <div class="body">
+      <ul class="facts text">
+        <li data-step="1"><b>Epic, Test Set, Test</b><span>Satu Epic, satu Test Set, dan Test untuk tiap skenario USE. Test juga masuk folder Test Repository dengan judul yang sama.</span></li>
+        <li data-step="2"><b>Judul dari FRD</b><span>Diambil dari judul halaman Confluence tanpa awalan FRD-xxx-nnnn, dan tetap bisa diedit.</span></li>
+        <li data-step="3"><b>Nomor Jira di Confluence</b><span>Halaman dibuat setelah Jira selesai. Kolom No. Test Case berisi TC001 dan key Test-nya.</span></li>
+        <li data-step="4"><b>Cek dulu, tidak dobel</b><span>Pratinjau menunjukkan yang dibuat baru dan yang dipakai ulang. Test yang sudah ada dilewati.</span></li>
+      </ul>
+      <div class="stack">
+        <figure class="shot"><img src="assets/auto-modal.png" width="640" height="239" alt="Pratinjau sebelum dibuat: project, Epic, Test Set, folder, jumlah Test, dan halaman Confluence tujuan"><span class="sample">Data contoh</span></figure>
+        <figure class="shot"><img src="assets/auto-hasil.png" width="680" height="319" alt="Hasil: key Epic, Test Set, dan Test di Jira, serta halaman Confluence yang berhasil dibuat"></figure>
+      </div>
+    </div>
+    <p class="notes">Dulu test case ditulis di Confluence lalu dibuat ulang satu per satu di Jira. Sekarang satu tombol membuat Epic, Test Set, dan Test, lalu halaman Confluence yang sudah berisi nomor Jira. Di project yang tidak mengizinkan Epic dibuat lewat API, Epic dibuat lewat WBS Gantt.</p>
+  </section>
+  <section class="slide s6" data-title="Tiket UQA sudah terisi" aria-label="Slide 7">
+    <div class="head"><p class="kicker">Alur A, langkah 4: tiket Jira</p><h2>Tiket UQA sudah terisi, kamu tinggal memeriksa</h2></div>
     <div class="body">
       <ul class="facts text">
         <li data-step="1"><b>Dihitung dan diisi otomatis</b><span>Isi awal dari tiket UQA sebelumnya. Working Weeks dan Months dari tanggal hari ini, SIT dan UAT dari jumlah skenario yang dipakai.</span></li>
@@ -295,8 +314,8 @@ dialog .close { margin-top: 14px; }
     <p class="notes">Form ini menggantikan belasan klik di Jira. Semua kolom tetap bisa diedit. Kolom yang berisi data orang atau data change management sengaja kosong, supaya tidak ada yang terisi tanpa disengaja.</p>
   </section>
 
-  <section class="slide s7" data-title="Tiket yang belum Done diingatkan otomatis" aria-label="Slide 7">
-    <div class="head"><p class="kicker">Alur A, langkah 4: WhatsApp</p><h2>Tiket yang belum Done diingatkan otomatis</h2></div>
+  <section class="slide s7" data-title="Tiket yang belum Done diingatkan otomatis" aria-label="Slide 8">
+    <div class="head"><p class="kicker">Alur A, langkah 5: WhatsApp</p><h2>Tiket yang belum Done diingatkan otomatis</h2></div>
     <div class="body">
       <figure class="shot"><img src="assets/wa-chat.png" width="520" height="780" alt="Percakapan WhatsApp berisi pesan pengingat tiket dan satu file laporan HTML"><span class="sample">Tampilan contoh</span></figure>
       <ul class="facts text">
@@ -309,8 +328,8 @@ dialog .close { margin-top: 14px; }
     <p class="notes">Pesan berisi key tiket, judul, status, dan link yang bisa langsung diklik. Kalau tiketnya sudah Done, bot diam. Jadi pesan yang masuk memang tiket yang perlu dilihat.</p>
   </section>
 
-  <section class="slide s8" data-title="Laporan UQA jadi satu file" aria-label="Slide 8">
-    <div class="head"><p class="kicker">Alur A, langkah 5: laporan</p><h2>Laporan UQA jadi satu file dan terkirim ke WhatsApp</h2></div>
+  <section class="slide s8" data-title="Laporan UQA jadi satu file" aria-label="Slide 9">
+    <div class="head"><p class="kicker">Alur A, langkah 6: laporan</p><h2>Laporan UQA jadi satu file dan terkirim ke WhatsApp</h2></div>
     <div class="pair">
       <figure class="shot"><img src="assets/report-ui.png" width="1090" height="759" alt="Daftar review laporan UQA dengan tombol edit dan hapus di tiap baris dan tombol Kirim ke WhatsApp"><span class="sample">Review, data contoh</span></figure>
       <figure class="shot"><img src="assets/report-html.png" width="1240" height="860" alt="Laporan HTML dengan kartu ringkasan, sebaran status, dan tabel tiket"><span class="sample">Hasil, data contoh</span></figure>
@@ -323,7 +342,7 @@ dialog .close { margin-top: 14px; }
     <p class="notes">Filter memakai query JQL yang sama dengan yang biasa dipakai tim. Hasilnya bisa kamu rapikan dulu di tabel review, lalu satu file HTML terkirim ke WhatsApp dan bisa dibuka di browser.</p>
   </section>
 
-  <section class="slide s9 lane-b" data-title="Lihat dulu desain dan gambar defect" aria-label="Slide 9">
+  <section class="slide s9 lane-b" data-title="Lihat dulu desain dan gambar defect" aria-label="Slide 10">
     <div class="head"><p class="kicker b">Alur B: Compare Defect</p><h2>Lihat dulu desain dan gambar defect, baru bandingkan</h2></div>
     <div class="pair">
       <figure data-step="1">
@@ -338,7 +357,7 @@ dialog .close { margin-top: 14px; }
     <p class="notes">Dua sumber ini dipratinjau terpisah supaya kamu yakin yang dibandingkan memang pasangan yang benar. Link Figma boleh menunjuk ke satu frame atau ke section berisi banyak layar, lalu kamu pilih salah satu.</p>
   </section>
 
-  <section class="slide s10 lane-b" data-title="Perbedaan ditandai di kedua gambar" aria-label="Slide 10">
+  <section class="slide s10 lane-b" data-title="Perbedaan ditandai di kedua gambar" aria-label="Slide 11">
     <div class="head"><p class="kicker b">Alur B: Compare Defect</p><h2>Perbedaan ditandai di kedua gambar</h2></div>
     <div class="body">
       <ul class="facts text">
@@ -351,7 +370,7 @@ dialog .close { margin-top: 14px; }
     <p class="notes">Tanpa AI pun kamu bisa membandingkan secara visual dengan tiga mode ini. Kalau AI dipakai, perbedaan ditandai dengan kotak yang nomornya cocok dengan tabel hasil.</p>
   </section>
 
-  <section class="slide s11 lane-b" data-title="Hasil analisis per area" aria-label="Slide 11">
+  <section class="slide s11 lane-b" data-title="Hasil analisis per area" aria-label="Slide 12">
     <div class="head"><p class="kicker b">Alur B: Compare Defect</p><h2>Hasil analisis tampil sebagai tabel per area</h2></div>
     <figure class="shot"><img src="assets/compare-result.png" width="1082" height="330" alt="Penilaian Defect valid dan tabel tiga perbedaan lengkap dengan isi desain, isi aktual, dan tingkat"><span class="sample">Hasil contoh</span></figure>
     <div class="cols">
@@ -362,7 +381,7 @@ dialog .close { margin-top: 14px; }
     <p class="notes">Angka dan isi tabel di slide ini adalah contoh. AI hanya membantu menemukan area yang perlu dilihat. Keputusan tetap di QA.</p>
   </section>
 
-  <section class="slide s12 lane-b" data-title="Komentar ke Jira direview dulu" aria-label="Slide 12">
+  <section class="slide s12 lane-b" data-title="Komentar ke Jira direview dulu" aria-label="Slide 13">
     <div class="head"><p class="kicker b">Alur B: Compare Defect</p><h2>Komentar ke Jira direview dulu, baru dikirim</h2></div>
     <div class="body">
       <ul class="facts text">
@@ -376,7 +395,7 @@ dialog .close { margin-top: 14px; }
     <p class="notes">Komentar tidak pernah terkirim sendiri. Kamu membaca drafnya, mengubah seperlunya, lalu menekan kirim dan mengonfirmasi di dialog. Gambar bertanda ikut menjadi lampiran tiket.</p>
   </section>
 
-  <section class="slide s13" data-title="Yang sengaja tidak berjalan sendiri" aria-label="Slide 13">
+  <section class="slide s13" data-title="Yang sengaja tidak berjalan sendiri" aria-label="Slide 14">
     <div class="head"><p class="kicker">Kontrol dan batas</p><h2>Yang sengaja tidak berjalan sendiri</h2></div>
     <div class="body">
       <div>
@@ -387,7 +406,7 @@ dialog .close { margin-top: 14px; }
         <div data-step="1">
           <h3>Selalu menunggu persetujuan kamu</h3>
           <ul class="facts">
-            <li><span>Tiket Jira dibuat setelah tombol Buat Tiket ditekan.</span></li>
+            <li><span>Tiket UQA, Test Jira, dan halaman Confluence dibuat setelah tombol Buat ditekan.</span></li>
             <li><span>Komentar dan lampiran ke Jira terkirim setelah dialog konfirmasi.</span></li>
             <li><span>Gambar dikirim ke layanan AI setelah persetujuan dicentang dan dikonfirmasi.</span></li>
             <li><span>Laporan ke WhatsApp terkirim setelah dialog konfirmasi.</span></li>
@@ -406,7 +425,7 @@ dialog .close { margin-top: 14px; }
     <p class="notes">Semua langkah yang mengubah data di luar aplikasi, yaitu membuat tiket, menulis komentar, mengirim gambar ke AI, dan mengirim WhatsApp, menunggu konfirmasi kamu. Batas di kolom kanan sebaiknya diketahui sebelum dipakai tim.</p>
   </section>
 
-  <section class="slide s14" data-title="Jalan lokal sekarang, online setelah izin" aria-label="Slide 14">
+  <section class="slide s14" data-title="Jalan lokal sekarang, online setelah izin" aria-label="Slide 15">
     <div class="main">
       <p class="brand">Q-PULSE · QMDxKiro</p>
       <h2>Jalan di komputer lokal sekarang, online setelah izin keamanan</h2>
