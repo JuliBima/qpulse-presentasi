@@ -110,7 +110,7 @@ code, .mono { font-family: var(--mono); font-size: .9em; color: var(--text); }
 .nodes span { font-size: 27px; line-height: 1.35; color: var(--text-2); }
 
 .s4 .text { width: 640px; flex: none; }
-.s4 .shot { width: 1032px; }
+.s4 .shot { width: 860px; margin-left: auto; }
 .s5 .shot { width: 860px; margin-top: 36px; }
 .s5 .text { flex: 1; }
 .sauto .text { flex: 1; }
@@ -238,7 +238,7 @@ dialog .close { margin-top: 14px; }
       <div class="lane lane-a" data-step="1">
         <div class="lane-name"><b>Alur A</b><span>Test case sampai WhatsApp</span></div>
         <ol class="nodes">
-          <li><b>Requirement</b><span>Tempel teks atau baca dari link Confluence</span></li>
+          <li><b>Requirement</b><span>Tempel teks atau baca dari beberapa halaman Confluence</span></li>
           <li><b>Test case</b><span>AI menyusun, kamu memilih, lalu dibuat di Jira dan Confluence</span></li>
           <li><b>Tiket UQA</b><span>Form terisi, tiket dibuat di Jira setelah kamu klik</span></li>
           <li><b>WhatsApp</b><span>Pengingat dan laporan terkirim ke nomor atau grup</span></li>
@@ -261,12 +261,12 @@ dialog .close { margin-top: 14px; }
     <div class="body">
       <ul class="facts text">
         <li data-step="1"><b>Jenis fitur dipilih dulu</b><span>Transaksi memakai skenario rekening, saldo, limit, PIN, dan receipt. Non-transaksi tidak memuat skenario rekening sama sekali.</span></li>
-        <li data-step="2"><b>Dua sumber input</b><span>Tempel teks requirement, atau masukkan link halaman Confluence dan isinya dibaca otomatis.</span></li>
+        <li data-step="2"><b>FRD plus dokumen lain</b><span>Tempel teks, atau baca link Confluence. Kalau FRD kurang lengkap, klik Tambah dokumen untuk TRD atau API doc, sampai 5 halaman.</span></li>
         <li data-step="3"><b>Tiga batch paralel</b><span>Disusun bersamaan sesuai jenis fitur. Beberapa biller menghasilkan skenario terpisah per biller.</span></li>
       </ul>
-      <figure class="shot"><img src="assets/testcase-input.png" width="1136" height="748" alt="Halaman Test Case Generate dengan pilihan jenis fitur Transaksi atau Non-transaksi, link Confluence terisi, dan teks requirement hasil bacaan"><span class="sample">Data contoh</span></figure>
+      <figure class="shot"><img src="assets/testcase-input.png" width="1136" height="1004" alt="Halaman Test Case Generate dengan pilihan jenis fitur, link FRD, satu dokumen tambahan TRD, tombol Tambah dokumen, dan requirement gabungan"><span class="sample">Data contoh</span></figure>
     </div>
-    <p class="notes">Pilih dulu jenis fiturnya. Fitur non-transaksi seperti onboarding atau profil tidak akan mendapat skenario rekening Branch A atau B. Requirement bisa ditempel atau dibaca dari halaman Confluence, lalu diedit sebelum Generate.</p>
+    <p class="notes">Pilih dulu jenis fiturnya. Fitur non-transaksi seperti onboarding atau profil tidak akan mendapat skenario rekening Branch A atau B. Requirement bisa ditempel atau dibaca dari halaman Confluence. Kalau FRD belum lengkap, tambahkan TRD atau API doc. Isinya digabung di bawah FRD dengan pembatas per dokumen, lalu bisa diedit sebelum Generate.</p>
   </section>
 
   <section class="slide s5" data-title="Kamu yang memutuskan skenario yang dipakai" aria-label="Slide 5">
